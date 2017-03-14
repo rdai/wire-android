@@ -748,7 +748,8 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
                                               user,
                                               anchorView instanceof ChatheadWithTextFooter,
                                               isAddingToConversation(),
-                                              searchResultAdapter.getItemViewType(position));
+                                              position,
+                                              searchResultAdapter);
 
         // Selecting user from search results toggles user token and confirmation button
         if (user.getConnectionStatus() == User.ConnectionStatus.ACCEPTED) {
@@ -783,18 +784,21 @@ public class PickUserFragment extends BaseFragment<PickUserFragment.Container> i
             return;
         }
 
-        ((BaseScalaActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new SelectedTopUser());
-        ((BaseScalaActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new OpenedConversationEvent(ConversationType.ONE_TO_ONE_CONVERSATION.name()));
+        ((BaseScalaActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new OpenedConversationEvent(ConversationType.ONE_TO_ONE_CONVERSATION.name(),
+                                                                                                                            OpenedConversationEvent.Context.TOPUSER_DOUBLETAP,
+                                                                                                                            (position+1)));
         getStoreFactory().getConversationStore().setCurrentConversation(user.getConversation(),
                                                                         ConversationChangeRequester.START_CONVERSATION);
     }
 
     @Override
-    public void onConversationClicked(IConversation conversation) {
+    public void onConversationClicked(IConversation conversation, int position) {
         KeyboardUtils.hideKeyboard(getActivity());
+        ((BaseScalaActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new OpenedConversationEvent(ConversationType.GROUP_CONVERSATION.name(),
+                                                                                                                            OpenedConversationEvent.Context.SEARCH,
+                                                                                                                            searchResultAdapter.getConversationInternalPosition(position)));
         getStoreFactory().getConversationStore().setCurrentConversation(conversation,
                                                                         ConversationChangeRequester.START_CONVERSATION);
-        ((BaseScalaActivity) getActivity()).injectJava(GlobalTrackingController.class).tagEvent(new OpenedConversationEvent(ConversationType.GROUP_CONVERSATION.name()));
     }
 
     //////////////////////////////////////////////////////////////////////////////////////////
